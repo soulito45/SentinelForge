@@ -92,4 +92,9 @@ class Asset(Base):
         cascade="all, delete-orphan",
     )
 
+    findings = relationship(
+        "Finding",
+        back_populates="asset",
+        cascade="all, delete-orphan",
+    )
 

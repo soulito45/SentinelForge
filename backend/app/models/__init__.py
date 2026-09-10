@@ -4,6 +4,7 @@ from backend.app.models.scan import Scan
 from backend.app.models.ip_address import IPAddress
 from backend.app.models.port import Port
 from backend.app.models.technology import Technology
+from backend.app.models.finding import Finding
 __all__ = [
     "Domain",
     "Asset",
@@ -11,4 +12,5 @@ __all__ = [
     "IPAddress",
     "port",
     "technology",
+    "Findings",
 ]
