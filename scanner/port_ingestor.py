@@ -11,27 +11,51 @@ def store_ports(
     ports: list[dict],
 ) -> int:
     """
-    Store or update Nmap port results for an asset.
+    Store the current Nmap port state for an asset.
+
+    Existing ports that are not present in the current scan
+    are marked closed instead of being deleted, preserving history.
     """
 
     now = datetime.utcnow()
     stored_count = 0
 
+    current_ports = {
+        (
+            result["port"],
+            result["protocol"],
+        )
+        for result in ports
+    }
+
+    existing_ports = {
+        (
+            port.port_number,
+            port.protocol,
+        ): port
+        for port in asset.ports
+    }
+
+    # ----------------------------------------------
+    # Store/update ports found in current scan
+    # ----------------------------------------------
+
     for result in ports:
         port_number = result["port"]
         protocol = result["protocol"]
 
-        existing_port = (
-            db.query(Port)
-            .filter(
-                Port.asset_id == asset.id,
-                Port.port_number == port_number,
-                Port.protocol == protocol,
-            )
-            .first()
-        )
+        key = (port_number, protocol)
 
-        if existing_port is None:
+        if key in existing_ports:
+            port_record = existing_ports[key]
+
+            port_record.state = result.get("state") or "unknown"
+            port_record.service_name = result.get("service_name")
+            port_record.product = result.get("product")
+            port_record.version = result.get("version")
+            port_record.last_seen = now
+
+        else:
             port_record = Port(
                 asset_id=asset.id,
                 port_number=port_number,
@@ -47,12 +71,18 @@ def store_ports(
             db.add(port_record)
             stored_count += 1
 
-        else:
-            existing_port.state = result.get("state") or "unknown"
-            existing_port.service_name = result.get("service_name")
-            existing_port.product = result.get("product")
-            existing_port.version = result.get("version")
-            existing_port.last_seen = now
+    # ----------------------------------------------
+    # Mark previously open ports as closed
+    # if they were not observed in this scan
+    # ----------------------------------------------
+
+    for key, port_record in existing_ports.items():
+
+        if (
+            port_record.state == "open"
+            and key not in current_ports
+        ):
+            port_record.state = "closed"
 
     db.commit()
 

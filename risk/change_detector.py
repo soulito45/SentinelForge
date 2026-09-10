@@ -157,10 +157,13 @@ def detect_changes(
     current_technologies: set[str],
     previous_findings: set[str],
     current_findings: set[str],
-) -> int:
-    total_changes = 0
+) -> dict:
+    """
+    Detect all changes for an asset and return
+    a breakdown by change category.
+    """
 
-    total_changes += detect_port_changes(
+    port_changes = detect_port_changes(
         db=db,
         asset=asset,
         scan_id=scan_id,
@@ -168,7 +171,7 @@ def detect_changes(
         current_ports=current_ports,
     )
 
-    total_changes += detect_technology_changes(
+    technology_changes = detect_technology_changes(
         db=db,
         asset=asset,
         scan_id=scan_id,
@@ -176,7 +179,7 @@ def detect_changes(
         current_technologies=current_technologies,
     )
 
-    total_changes += detect_finding_changes(
+    finding_changes = detect_finding_changes(
         db=db,
         asset=asset,
         scan_id=scan_id,
@@ -186,4 +189,13 @@ def detect_changes(
 
     db.commit()
 
-    return total_changes
+    return {
+        "port_changes": port_changes,
+        "technology_changes": technology_changes,
+        "finding_changes": finding_changes,
+        "total_changes": (
+            port_changes
+            + technology_changes
+            + finding_changes
+        ),
+    }

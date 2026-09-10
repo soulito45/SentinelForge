@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.api.deps import get_db
 from backend.app.models import Domain, Scan
-from scanner.discovery_pipeline import run_discovery
+from scanner.scan_pipeline import run_full_scan
 
 
 router = APIRouter(prefix="/scans", tags=["Scans"])
@@ -39,10 +39,10 @@ def start_scan(
     db.refresh(scan)
 
     try:
-        asset_count = run_discovery(
+        result = run_full_scan(
             db=db,
-            domain_id=domain.id,
-            domain_name=domain.name,
+            domain=domain,
+            scan=scan,
         )
 
         scan.status = "completed"
@@ -55,7 +55,15 @@ def start_scan(
             "scan_id": scan.id,
             "status": scan.status,
             "domain": domain.name,
-            "assets_discovered": asset_count,
+            "assets_discovered": result["assets_discovered"],
+            "asset_changes": result["asset_changes"],
+            "port_changes": result["port_changes"],
+            "technology_changes": result["technology_changes"],
+            "finding_changes": result["finding_changes"],
+            "total_changes": result["total_changes"],
+            "assets_risk_calculated": (
+                result["assets_risk_calculated"]
+            ),
             "started_at": scan.started_at,
             "completed_at": scan.completed_at,
         }

@@ -11,7 +11,18 @@ def store_technologies(
     technologies: list[str],
 ) -> int:
     """
-    Store or update technologies discovered for an asset.
+    Store the current technology state for an asset.
+
+    Technologies are retained for historical tracking.
+
+    Technologies observed in the current scan:
+        status = active
+        last_seen = current time
+
+    Technologies not observed in the current scan:
+        status = inactive
+
+    Historical rows are never deleted.
     """
 
     now = datetime.utcnow()
@@ -21,20 +32,43 @@ def store_technologies(
         for technology in asset.technologies
     }
 
+    current_technologies = {
+        name.strip()
+        for name in technologies
+        if name and name.strip()
+    }
+
     stored_count = 0
 
-    for name in technologies:
-        name = name.strip()
+    # ----------------------------------------------
+    # Mark previously active technologies inactive
+    # if they are absent from the current scan
+    # ----------------------------------------------
 
-        if not name:
-            continue
+    for technology in existing.values():
+        if (
+            technology.status == "active"
+            and technology.name not in current_technologies
+        ):
+            technology.status = "inactive"
+
+    # ----------------------------------------------
+    # Store/update technologies observed now
+    # ----------------------------------------------
+
+    for name in current_technologies:
 
         if name in existing:
-            existing[name].last_seen = now
+            technology = existing[name]
+
+            technology.status = "active"
+            technology.last_seen = now
+
         else:
             technology = Technology(
                 asset_id=asset.id,
                 name=name,
+                status="active",
                 first_seen=now,
                 last_seen=now,
             )

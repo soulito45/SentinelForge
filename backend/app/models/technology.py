@@ -27,6 +27,12 @@ class Technology(Base):
         nullable=True,
     )
 
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="active",
+        nullable=False,
+    )
+
     first_seen: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
