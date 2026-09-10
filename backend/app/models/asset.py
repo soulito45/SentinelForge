@@ -1,6 +1,7 @@
+
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
@@ -48,6 +49,26 @@ class Asset(Base):
         nullable=False,
     )
 
+    http_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    http_status: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    http_title: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    web_server: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     domain = relationship(
         "Domain",
         back_populates="assets",
@@ -58,3 +79,17 @@ class Asset(Base):
         back_populates="asset",
         cascade="all, delete-orphan",
     )
+
+    ports = relationship(
+        "Port",
+        back_populates="asset",
+        cascade="all, delete-orphan",
+    )
+
+    technologies = relationship(
+        "Technology",
+        back_populates="asset",
+        cascade="all, delete-orphan",
+    )
+
+
