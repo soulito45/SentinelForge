@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
@@ -69,6 +68,23 @@ class Asset(Base):
         nullable=True,
     )
 
+    risk_score: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    risk_level: Mapped[str] = mapped_column(
+        String(20),
+        default="LOW",
+        nullable=False,
+    )
+
+    risk_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
     domain = relationship(
         "Domain",
         back_populates="assets",
@@ -97,4 +113,3 @@ class Asset(Base):
         back_populates="asset",
         cascade="all, delete-orphan",
     )
-
