@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
@@ -20,6 +20,11 @@ function App() {
   const [domains, setDomains] = useState([]);
   const [scanHistory, setScanHistory] = useState([]);
   const [domainName, setDomainName] = useState("");
+  const [assetSearch, setAssetSearch] = useState("");
+  const [findingSearch, setFindingSearch] = useState("");
+  const [changeSearch, setChangeSearch] = useState("");
+  const [domainSearch, setDomainSearch] = useState("");
+  const [scanSearch, setScanSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -28,6 +33,20 @@ function App() {
   useEffect(() => {
     void loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (activeSection !== "scans") {
+      return undefined;
+    }
+
+    void loadScanHistory();
+
+    const intervalId = window.setInterval(() => {
+      void loadScanHistory();
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeSection]);
 
   const requestJson = async (url, options = {}) => {
     const response = await fetch(url, {
@@ -51,19 +70,31 @@ function App() {
       setError("");
       setLoading(true);
 
-      const [overviewResponse, assetsResponse, domainsResponse] = await Promise.all([
-        requestJson(`${API_BASE}/dashboard/overview`),
-        requestJson(`${API_BASE}/dashboard/assets`),
-        requestJson(`${API_BASE}/domains/`),
-      ]);
+      const [overviewResponse, assetsResponse, domainsResponse, scanHistoryResponse] =
+        await Promise.all([
+          requestJson(`${API_BASE}/dashboard/overview`),
+          requestJson(`${API_BASE}/dashboard/assets`),
+          requestJson(`${API_BASE}/domains/`),
+          requestJson(`${API_BASE}/scans/`),
+        ]);
 
       setOverview(overviewResponse);
       setAssets(assetsResponse);
       setDomains(domainsResponse);
+      setScanHistory(scanHistoryResponse);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadScanHistory = async () => {
+    try {
+      const data = await requestJson(`${API_BASE}/scans/`);
+      setScanHistory(data);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -130,6 +161,7 @@ function App() {
       setDomains((previousDomains) => [domain, ...previousDomains]);
       setDomainName("");
       setStatusMessage(`Domain "${domain.name}" added successfully.`);
+      await loadScanHistory();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -140,35 +172,172 @@ function App() {
   const handleScanDomain = async (domainId, domainNameValue) => {
     try {
       setError("");
-      setStatusMessage(`Starting scan for ${domainNameValue}...`);
+      setStatusMessage(`Scan queued for ${domainNameValue}...`);
 
-      const result = await requestJson(
-        `${API_BASE}/scans/?domain_id=${domainId}`,
-        {
-          method: "POST",
-        },
-      );
+      const result = await requestJson(`${API_BASE}/scans/?domain_id=${domainId}`, {
+        method: "POST",
+      });
 
       setScanHistory((previousScans) => [
         {
           id: result.scan_id,
+          domain_id: domainId,
           domain: domainNameValue,
           status: result.status,
-          assetsDiscovered: result.assets_discovered,
-          totalChanges: result.total_changes,
-          startedAt: result.started_at,
-          completedAt: result.completed_at,
+          started_at: result.started_at,
+          completed_at: result.completed_at,
         },
         ...previousScans,
       ]);
 
       setStatusMessage(
-        `Scan started for ${domainNameValue}. Status: ${result.status}.`,
+        `Scan queued for ${domainNameValue}. You can refresh the list or watch it update automatically.`,
       );
+
+      await loadScanHistory();
     } catch (err) {
       setError(err.message);
     }
   };
+
+  const filteredAssets = useMemo(() => {
+    const query = assetSearch.trim().toLowerCase();
+
+    return assets.filter((asset) => {
+      if (!query) {
+        return true;
+      }
+
+      return [
+        asset.hostname,
+        asset.asset_type,
+        asset.status,
+        asset.risk_level,
+      ]
+        .filter(Boolean)
+        .some((value) => value.toString().toLowerCase().includes(query));
+    });
+  }, [assets, assetSearch]);
+
+  const filteredFindings = useMemo(() => {
+    const query = findingSearch.trim().toLowerCase();
+
+    return findings.filter((finding) => {
+      if (!query) {
+        return true;
+      }
+
+      return [
+        finding.title,
+        finding.template_id,
+        finding.severity,
+        finding.status,
+        String(finding.asset_id),
+      ]
+        .filter(Boolean)
+        .some((value) => value.toString().toLowerCase().includes(query));
+    });
+  }, [findings, findingSearch]);
+
+  const filteredChanges = useMemo(() => {
+    const query = changeSearch.trim().toLowerCase();
+
+    return changes.filter((change) => {
+      if (!query) {
+        return true;
+      }
+
+      return [
+        change.change_type,
+        change.description,
+        change.previous_value,
+        change.current_value,
+        String(change.asset_id),
+      ]
+        .filter(Boolean)
+        .some((value) => value.toString().toLowerCase().includes(query));
+    });
+  }, [changes, changeSearch]);
+
+  const filteredDomains = useMemo(() => {
+    const query = domainSearch.trim().toLowerCase();
+
+    return domains.filter((domain) => {
+      if (!query) {
+        return true;
+      }
+
+      return domain.name.toLowerCase().includes(query);
+    });
+  }, [domains, domainSearch]);
+
+  const filteredScans = useMemo(() => {
+    const query = scanSearch.trim().toLowerCase();
+
+    return scanHistory.filter((scan) => {
+      if (!query) {
+        return true;
+      }
+
+      return [
+        scan.domain,
+        scan.status,
+        String(scan.id),
+      ]
+        .filter(Boolean)
+        .some((value) => value.toString().toLowerCase().includes(query));
+    });
+  }, [scanHistory, scanSearch]);
+
+  const topRiskAsset = useMemo(() => {
+    if (!assets.length) {
+      return null;
+    }
+
+    return assets.reduce((highest, asset) => {
+      if (asset.risk_score > highest.risk_score) {
+        return asset;
+      }
+
+      return highest;
+    }, assets[0]);
+  }, [assets]);
+
+  const verdict = useMemo(() => {
+    if (!overview) {
+      return { label: "LOADING", level: "neutral", message: "Gathering assessment data..." };
+    }
+
+    if (overview.total_assets === 0) {
+      return {
+        label: "NO DATA",
+        level: "neutral",
+        message: "No assets have been discovered yet. Add a domain and start a scan.",
+      };
+    }
+
+    if (overview.risk_distribution.critical > 0) {
+      return {
+        label: "CRITICAL",
+        level: "critical",
+        message: "Critical exposure detected. Investigate the highest-risk assets first.",
+      };
+    }
+
+    if (overview.open_findings > 0 || overview.open_ports > 0) {
+      return {
+        label: "ATTENTION",
+        level: "warning",
+        message: "Open findings or exposed services require review before the surface is considered clean.",
+      };
+    }
+
+    return {
+      label: "HEALTHY",
+      level: "healthy",
+      message: "No open findings and no exposed ports are currently flagged in the latest scan data.",
+    };
+  }, [overview]);
 
   const renderAssetTable = (title, subtitle) => (
     <section className="panel assets-panel">
@@ -179,8 +348,17 @@ function App() {
         </div>
 
         <div className="asset-count">
-          {subtitle || `${assets.length} TOTAL`}
+          {subtitle || `${filteredAssets.length} TOTAL`}
         </div>
+      </div>
+
+      <div className="table-toolbar">
+        <input
+          type="text"
+          value={assetSearch}
+          onChange={(event) => setAssetSearch(event.target.value)}
+          placeholder="Search assets"
+        />
       </div>
 
       <div className="asset-table">
@@ -192,7 +370,7 @@ function App() {
           <span>SCORE</span>
         </div>
 
-        {assets.map((asset) => (
+        {filteredAssets.map((asset) => (
           <div className="asset-row" key={asset.id}>
             <div className="hostname-cell">
               <div className="host-icon">⌁</div>
@@ -232,8 +410,8 @@ function App() {
           </div>
         ))}
 
-        {assets.length === 0 && (
-          <div className="table-empty">No assets discovered yet.</div>
+        {filteredAssets.length === 0 && (
+          <div className="table-empty">No assets match your current search.</div>
         )}
       </div>
     </section>
@@ -242,6 +420,33 @@ function App() {
   const renderOverview = () => (
     <>
       <section className="content">
+        <div className="verdict-panel">
+          <div className="verdict-header">
+            <div>
+              <div className="eyebrow">VERDICT SUMMARY</div>
+              <h2>{verdict.label}</h2>
+            </div>
+            <span className={`verdict-badge ${verdict.level}`}>{verdict.label}</span>
+          </div>
+
+          <p>{verdict.message}</p>
+
+          <div className="verdict-grid">
+            <div>
+              <span>Open findings</span>
+              <strong>{overview.open_findings}</strong>
+            </div>
+            <div>
+              <span>Open ports</span>
+              <strong>{overview.open_ports}</strong>
+            </div>
+            <div>
+              <span>Highest risk</span>
+              <strong>{topRiskAsset ? topRiskAsset.risk_level : "N/A"}</strong>
+            </div>
+          </div>
+        </div>
+
         <div className="intro">
           <div>
             <div className="eyebrow">SECURITY INTELLIGENCE</div>
@@ -386,7 +591,16 @@ function App() {
             <div className="eyebrow">ATTENTION</div>
             <h3>Current findings</h3>
           </div>
-          <div className="asset-count">{findings.length} TOTAL</div>
+          <div className="asset-count">{filteredFindings.length} TOTAL</div>
+        </div>
+
+        <div className="table-toolbar">
+          <input
+            type="text"
+            value={findingSearch}
+            onChange={(event) => setFindingSearch(event.target.value)}
+            placeholder="Search findings"
+          />
         </div>
 
         <div className="asset-table findings-table">
@@ -398,7 +612,7 @@ function App() {
             <span>LAST SEEN</span>
           </div>
 
-          {findings.map((finding) => (
+          {filteredFindings.map((finding) => (
             <div className="asset-row" key={finding.id}>
               <div className="hostname-cell">
                 <div className="host-icon">⚑</div>
@@ -431,8 +645,8 @@ function App() {
             </div>
           ))}
 
-          {findings.length === 0 && (
-            <div className="table-empty">No findings available yet.</div>
+          {filteredFindings.length === 0 && (
+            <div className="table-empty">No findings match your current search.</div>
           )}
         </div>
       </section>
@@ -454,7 +668,16 @@ function App() {
             <div className="eyebrow">HISTORY</div>
             <h3>Detected changes</h3>
           </div>
-          <div className="asset-count">{changes.length} TOTAL</div>
+          <div className="asset-count">{filteredChanges.length} TOTAL</div>
+        </div>
+
+        <div className="table-toolbar">
+          <input
+            type="text"
+            value={changeSearch}
+            onChange={(event) => setChangeSearch(event.target.value)}
+            placeholder="Search changes"
+          />
         </div>
 
         <div className="asset-table findings-table">
@@ -466,7 +689,7 @@ function App() {
             <span>CURRENT</span>
           </div>
 
-          {changes.map((change) => (
+          {filteredChanges.map((change) => (
             <div className="asset-row" key={change.id}>
               <div className="hostname-cell">
                 <div className="host-icon">⇄</div>
@@ -495,8 +718,8 @@ function App() {
             </div>
           ))}
 
-          {changes.length === 0 && (
-            <div className="table-empty">No change events yet.</div>
+          {filteredChanges.length === 0 && (
+            <div className="table-empty">No changes match your current search.</div>
           )}
         </div>
       </section>
@@ -541,11 +764,20 @@ function App() {
             <div className="eyebrow">AVAILABLE DOMAINS</div>
             <h3>Run scans</h3>
           </div>
-          <div className="asset-count">{domains.length} DOMAINS</div>
+          <div className="asset-count">{filteredDomains.length} DOMAINS</div>
+        </div>
+
+        <div className="table-toolbar">
+          <input
+            type="text"
+            value={domainSearch}
+            onChange={(event) => setDomainSearch(event.target.value)}
+            placeholder="Search domains"
+          />
         </div>
 
         <div className="domain-list">
-          {domains.map((domain) => (
+          {filteredDomains.map((domain) => (
             <div className="domain-item" key={domain.id}>
               <div>
                 <strong>{domain.name}</strong>
@@ -562,8 +794,8 @@ function App() {
             </div>
           ))}
 
-          {domains.length === 0 && (
-            <div className="table-empty">No domains yet. Add one to start scanning.</div>
+          {filteredDomains.length === 0 && (
+            <div className="table-empty">No domains match your current search.</div>
           )}
         </div>
       </section>
@@ -574,29 +806,38 @@ function App() {
             <div className="eyebrow">RECENT ACTIVITY</div>
             <h3>Scan history</h3>
           </div>
-          <div className="asset-count">{scanHistory.length} RUNS</div>
+          <div className="asset-count">{filteredScans.length} RUNS</div>
+        </div>
+
+        <div className="table-toolbar">
+          <input
+            type="text"
+            value={scanSearch}
+            onChange={(event) => setScanSearch(event.target.value)}
+            placeholder="Search scans"
+          />
         </div>
 
         <div className="scan-history">
-          {scanHistory.map((scan) => (
+          {filteredScans.map((scan) => (
             <div className="scan-item" key={`${scan.id}-${scan.domain}`}>
               <div>
                 <strong>{scan.domain}</strong>
                 <small>
-                  Started {new Date(scan.startedAt).toLocaleString()} · Status: {scan.status}
+                  Started {new Date(scan.started_at).toLocaleString()} · Status: {scan.status}
                 </small>
               </div>
 
               <div className="scan-metrics">
-                <span>{scan.assetsDiscovered ?? 0} assets</span>
-                <span>{scan.totalChanges ?? 0} changes</span>
+                <span>{scan.status}</span>
+                <span>ID #{scan.id}</span>
               </div>
             </div>
           ))}
 
-          {scanHistory.length === 0 && (
+          {filteredScans.length === 0 && (
             <div className="table-empty">
-              No scans started yet. Add a domain and run a scan.
+              No scans match your current search.
             </div>
           )}
         </div>
@@ -686,7 +927,7 @@ function App() {
         {statusMessage && <div className="status-banner">{statusMessage}</div>}
 
         {activeSection === "overview" && renderOverview()}
-        {activeSection === "assets" && renderAssetTable("Assets", `${assets.length} TOTAL`)}
+        {activeSection === "assets" && renderAssetTable("Assets", `${filteredAssets.length} TOTAL`)}
         {activeSection === "findings" && renderFindings()}
         {activeSection === "changes" && renderChanges()}
         {activeSection === "scans" && renderScans()}

@@ -10,6 +10,10 @@ button {
   font: inherit;
 }
 
+input {
+  font: inherit;
+}
+
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -692,73 +696,6 @@ button {
   font-size: 9px;
 }
 
-@media (max-width: 1000px) {
-  .sidebar {
-    width: 190px;
-  }
-
-  .main-content {
-    width: calc(100% - 190px);
-    margin-left: 190px;
-  }
-
-  .metric-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .analysis-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .content {
-    padding: 30px;
-  }
-
-  .topbar {
-    padding: 0 30px;
-  }
-}
-
-@media (max-width: 720px) {
-  .sidebar {
-    display: none;
-  }
-
-  .main-content {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .intro {
-    display: block;
-  }
-
-  .intro p {
-    margin-top: 15px;
-  }
-
-  .metric-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .table-header,
-  .asset-row {
-    grid-template-columns: 2fr 1fr 1fr;
-  }
-
-  .table-header span:nth-child(3),
-  .table-header span:nth-child(4),
-  .asset-row > div:nth-child(3),
-  .asset-row > div:nth-child(4) {
-    display: none;
-  }
-
-  .timestamp,
-  .topbar-divider {
-    display: none;
-  }
-}
-
 .page-header {
   margin: 32px 0 18px;
 }
@@ -797,7 +734,8 @@ button {
   gap: 12px;
 }
 
-.scan-form input {
+.scan-form input,
+.table-toolbar input {
   flex: 1;
   min-height: 40px;
   border: 1px solid #2a2d32;
@@ -805,6 +743,10 @@ button {
   color: #edf0f4;
   padding: 0 14px;
   font: inherit;
+}
+
+.table-toolbar {
+  padding: 16px 20px 0;
 }
 
 .scan-form button,
@@ -877,7 +819,160 @@ button {
   grid-template-columns: 1.1fr 2fr 0.9fr 0.8fr 0.9fr;
 }
 
+.verdict-panel {
+  margin: 30px 0 20px;
+  border: 1px solid #2a2d32;
+  background: #0e1013;
+  padding: 22px 24px;
+}
+
+.verdict-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.verdict-header h2 {
+  margin: 8px 0 0;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.verdict-badge {
+  padding: 8px 10px;
+  border: 1px solid #2a2d32;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.verdict-badge.healthy {
+  color: #96d6aa;
+  border-color: #2d3d31;
+  background: rgba(120, 211, 155, 0.08);
+}
+
+.verdict-badge.warning {
+  color: #d3b067;
+  border-color: #4a3d2d;
+  background: rgba(211, 176, 103, 0.08);
+}
+
+.verdict-badge.critical {
+  color: #d49a9a;
+  border-color: #4a3030;
+  background: rgba(212, 154, 154, 0.08);
+}
+
+.verdict-badge.neutral {
+  color: #b6bac1;
+  border-color: #2a2d32;
+}
+
+.verdict-panel p {
+  margin: 16px 0 0;
+  color: #8f939a;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.verdict-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.verdict-grid div {
+  border: 1px solid #1f2329;
+  background: #0a0b0e;
+  padding: 16px;
+}
+
+.verdict-grid span {
+  display: block;
+  color: #676e76;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.verdict-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: #e1e5ea;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+@media (max-width: 1000px) {
+  .sidebar {
+    width: 190px;
+  }
+
+  .main-content {
+    width: calc(100% - 190px);
+    margin-left: 190px;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content {
+    padding: 30px;
+  }
+
+  .topbar {
+    padding: 0 30px;
+  }
+}
+
 @media (max-width: 720px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main-content {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .intro {
+    display: block;
+  }
+
+  .intro p {
+    margin-top: 15px;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .table-header,
+  .asset-row {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
+  .table-header span:nth-child(3),
+  .table-header span:nth-child(4),
+  .asset-row > div:nth-child(3),
+  .asset-row > div:nth-child(4) {
+    display: none;
+  }
+
+  .timestamp,
+  .topbar-divider {
+    display: none;
+  }
+
   .status-banner {
     margin: 18px 20px 0;
   }
@@ -891,5 +986,9 @@ button {
   .scan-item {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .verdict-grid {
+    grid-template-columns: 1fr;
   }
 }
