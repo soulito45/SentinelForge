@@ -5,7 +5,7 @@ from backend.app.api.scans import router as scans_router
 
 
 app = FastAPI(
-    title="SentinelForge",
+    title="RYNEX",
     description="External Attack Surface Intelligence & Risk Monitoring Platform",
     version="0.1.0",
 )
@@ -18,5 +18,5 @@ app.include_router(scans_router)
 def health_check():
     return {
         "status": "healthy",
-        "service": "SentinelForge API",
+        "service": "RYNEX API",
     }

@@ -1,10 +1,10 @@
-# 🛡️ SentinelForge
+# 🛡️ RYNEX
 
 ### External Attack Surface Intelligence & Risk Monitoring Platform
 
-SentinelForge is a locally hosted cybersecurity platform designed to discover, map, monitor, and prioritize internet-facing attack-surface exposure.
+RYNEX is a locally hosted cybersecurity platform designed to discover, map, monitor, and prioritize internet-facing attack-surface exposure.
 
-Instead of treating vulnerability scanning as a one-time activity, SentinelForge maintains an evolving view of assets, ports, technologies, findings, risk, and security changes across scans.
+Instead of treating vulnerability scanning as a one-time activity, RYNEX maintains an evolving view of assets, ports, technologies, findings, risk, and security changes across scans.
 
 > **Current status:** Day 5 of 7 — Core backend, scanning pipeline, risk engine, and change detection completed.
 > **Dashboard and final project hardening are planned for Days 6–7.**
@@ -13,7 +13,7 @@ Instead of treating vulnerability scanning as a one-time activity, SentinelForge
 
 ## 🎯 Project Goal
 
-The goal of SentinelForge is to answer a practical security question:
+The goal of RYNEX is to answer a practical security question:
 
 > **"What is exposed, what changed, and what should I investigate first?"**
 
@@ -47,7 +47,7 @@ The project is intentionally designed around **asset state and historical change
 
 ---
 
-# 🔥 Why SentinelForge?
+# 🔥 Why RYNEX?
 
 Traditional scanner workflows often produce large amounts of output without answering:
 
@@ -59,7 +59,7 @@ Traditional scanner workflows often produce large amounts of output without answ
 * Which findings were resolved?
 * Which exposed asset deserves attention first?
 
-SentinelForge attempts to provide that context by maintaining state between scans.
+RYNEX attempts to provide that context by maintaining state between scans.
 
 ### Core differentiator
 
@@ -77,7 +77,7 @@ Contextual Risk
 Analyst Prioritization
 ```
 
-This makes SentinelForge more than a basic Nmap/Nuclei wrapper.
+This makes RYNEX more than a basic Nmap/Nuclei wrapper.
 
 ---
 
@@ -197,7 +197,7 @@ This makes SentinelForge more than a basic Nmap/Nuclei wrapper.
 
 ## 1. Asset Discovery
 
-SentinelForge uses Subfinder to discover subdomains associated with an authorized domain.
+RYNEX uses Subfinder to discover subdomains associated with an authorized domain.
 
 Discovered hostnames are:
 
@@ -228,7 +228,7 @@ Historical asset records are retained.
 
 Nmap is used to identify exposed network services.
 
-SentinelForge extracts:
+RYNEX extracts:
 
 * Port number
 * Protocol
@@ -276,7 +276,7 @@ Historical technology records are retained.
 
 Nuclei is integrated into the pipeline for vulnerability and exposure detection.
 
-SentinelForge stores:
+RYNEX stores:
 
 * Template ID
 * Finding title
@@ -305,7 +305,7 @@ Repeated findings are deduplicated using the asset and Nuclei template relations
 
 # ⚠️ 5. Contextual Risk Engine
 
-SentinelForge calculates an internal prioritization score using finding severity and exposure context.
+RYNEX calculates an internal prioritization score using finding severity and exposure context.
 
 Factors currently considered include:
 
@@ -327,7 +327,7 @@ CRITICAL
 
 ### Important
 
-The SentinelForge score is an **internal prioritization score**.
+The RYNEX score is an **internal prioritization score**.
 
 It is **not CVSS** and should not be interpreted as an official vulnerability severity standard.
 
@@ -335,7 +335,7 @@ It is **not CVSS** and should not be interpreted as an official vulnerability se
 
 # 🔄 6. Change Detection
 
-One of SentinelForge's primary features is comparing security state between scans.
+One of RYNEX's primary features is comparing security state between scans.
 
 ### Asset changes
 
@@ -376,7 +376,7 @@ Previous Scan
 Current Scan
 22/tcp → CLOSED
 
-SentinelForge
+RYNEX
 ↓
 CLOSED_PORT
 ```
@@ -385,7 +385,7 @@ CLOSED_PORT
 
 # 🧠 State Tracking
 
-SentinelForge is designed around persistent security state.
+RYNEX is designed around persistent security state.
 
 Instead of:
 
@@ -505,7 +505,7 @@ Development and integration testing is performed locally.
 Example test asset:
 
 ```text
-test.sentinelforge.local
+test.rynex.local
 ```
 
 Example observed state:
@@ -552,7 +552,7 @@ Current local test data exists only to validate the platform's functionality.
 
 ```bash
 git clone <repository-url>
-cd SentinelForge
+cd RYNEX
 ```
 
 ## Create virtual environment
@@ -573,7 +573,7 @@ pip install -r requirements.txt
 Create `.env`:
 
 ```env
-DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@localhost:5432/sentinelforge
+DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@localhost:5432/rynex
 ```
 
 ## Start API
@@ -604,7 +604,7 @@ http://127.0.0.1:8000/docs
 
 # 🔐 Authorization & Safety
 
-SentinelForge is intended to be used **only against systems for which the operator has explicit authorization**.
+RYNEX is intended to be used **only against systems for which the operator has explicit authorization**.
 
 Do not scan:
 
@@ -734,7 +734,7 @@ Overall: ~71%
 
 # 📄 Project Status
 
-**SentinelForge is currently at the end of Day 5 of its 7-day MVP development plan.**
+**RYNEX is currently at the end of Day 5 of its 7-day MVP development plan.**
 
 The core security intelligence backend is operational:
 
@@ -751,7 +751,7 @@ Change Detection
    +
 Historical State
    =
-SentinelForge Core Engine
+RYNEX Core Engine
 ```
 
 The next milestone is the **analyst-facing security dashboard**.
@@ -760,6 +760,6 @@ The next milestone is the **analyst-facing security dashboard**.
 
 ## ⚠️ Disclaimer
 
-SentinelForge is an educational, defensive-security, and portfolio project.
+RYNEX is an educational, defensive-security, and portfolio project.
 
 Only use it against infrastructure that you own or have explicit authorization to assess.

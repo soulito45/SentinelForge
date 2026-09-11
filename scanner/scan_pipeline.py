@@ -18,7 +18,7 @@ def run_full_scan(
     scan: Scan,
 ) -> dict:
     """
-    Run the complete SentinelForge scan pipeline.
+    Run the complete RYNEX scan pipeline.
 
     Domain
       -> Discovery
@@ -31,7 +31,7 @@ def run_full_scan(
 
     print()
     print("==========================================")
-    print("       SENTINELFORGE FULL SCAN")
+    print("       RYNEX FULL SCAN")
     print("==========================================")
     print(f"[+] Domain: {domain.name}")
     print(f"[+] Scan ID: {scan.id}")
@@ -287,7 +287,7 @@ def run_full_scan(
 
     print()
     print("==========================================")
-    print("       SENTINELFORGE SCAN COMPLETE")
+    print("       RYNEX SCAN COMPLETE")
     print("==========================================")
     print(f"[+] Assets discovered: {asset_count}")
     print(f"[+] Asset changes: {asset_changes}")

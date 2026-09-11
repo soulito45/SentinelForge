@@ -17,7 +17,7 @@ def calculate_finding_score(
     version_detected: bool = False,
 ) -> int:
     """
-    Calculate a contextual SentinelForge risk score.
+    Calculate a contextual RYNEX risk score.
 
     This is an internal prioritization score and is not CVSS.
     """
@@ -47,7 +47,7 @@ def calculate_finding_score(
 
 def get_risk_level(score: int) -> str:
     """
-    Convert a numeric risk score into a SentinelForge risk level.
+    Convert a numeric risk score into a RYNEX risk level.
     """
 
     if score >= 75:
