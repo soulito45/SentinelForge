@@ -1,784 +1,291 @@
-# 🛡️ RYNEX
+# RYNEX
 
-### External Attack Surface Intelligence & Risk Monitoring Platform
+RYNEX is a locally hosted attack-surface intelligence and risk monitoring platform built for security analysts, researchers, and developers who want a practical way to discover exposed assets, track changes over time, and prioritize what matters most.
 
-RYNEX is a locally hosted cybersecurity platform for discovering, mapping, monitoring, and prioritizing internet-facing attack-surface exposure.
+It combines discovery, exposure mapping, vulnerability detection, historical state tracking, and a lightweight dashboard into one workflow.
 
-It stores asset state across scans, compares changes over time, and surfaces a prioritized view of what matters most to the analyst.
+> Current verified status: the backend, API, dashboard build, and end-to-end scan flow are working in this workspace.
 
-> **Current status:** The project is working as a local, owner-controlled security dashboard. The frontend and backend are integrated, scans run asynchronously, and domain creation is restricted to an allowlist defined by `ALLOWED_DOMAINS`.
+## Why RYNEX?
 
----
+Most scanning tools stop at raw output. RYNEX goes one step further:
 
-## 🎯 Project Goal
+- it stores asset state across scans,
+- compares current results to previous scans,
+- detects changes in assets, ports, technologies, and findings,
+- calculates an internal risk score to help prioritize investigation.
 
-The goal of RYNEX is to answer a practical security question:
+This makes RYNEX useful as both a portfolio project and a defensive security monitoring tool for authorized environments.
 
-> **"What is exposed, what changed, and what should I investigate first?"**
+## Key Features
 
-The platform combines multiple security tools into a structured monitoring pipeline:
+- Domain-based scan workflow with allowlist protection
+- Subdomain discovery and DNS/IP resolution
+- Nmap-based port and service exposure mapping
+- HTTPX-based technology and web exposure detection
+- Nuclei-based vulnerability/finding ingestion
+- Historical change detection across scans
+- Internal risk scoring for prioritization
+- Dashboard for viewing assets, findings, and scan history
+- Async scan execution through the FastAPI backend
 
-```text
-Authorized Domain
-       ↓
-Subdomain Discovery
-       ↓
-DNS / IP Resolution
-       ↓
-Nmap
-       ↓
-HTTPX
-       ↓
-Nuclei
-       ↓
-Normalization
-       ↓
-Change Detection
-       ↓
-Risk Engine
-       ↓
-PostgreSQL
-       ↓
-FastAPI API
-```
-
-The project is intentionally designed around **asset state and historical change**, rather than simply displaying raw scanner output.
-
----
-
-# 🔥 Why RYNEX?
-
-Traditional scanner workflows often produce large amounts of output without answering:
-
-* What assets are currently exposed?
-* Which assets appeared or disappeared?
-* Which ports opened or closed?
-* Which technologies changed?
-* Which findings are new?
-* Which findings were resolved?
-* Which exposed asset deserves attention first?
-
-RYNEX attempts to provide that context by maintaining state between scans.
-
-### Core differentiator
+## Architecture
 
 ```text
-Scanner Output
-      ↓
-Structured Asset State
-      ↓
-Historical Comparison
-      ↓
-Security Changes
-      ↓
-Contextual Risk
-      ↓
-Analyst Prioritization
+Analyst / UI
+    ↓
+FastAPI REST API
+    ↓
+Scan Orchestrator
+    ├── Subfinder    → Subdomains
+    ├── DNS Resolver → IPs / Hostnames
+    ├── Nmap         → Ports / Services
+    ├── HTTPX        → HTTP exposure / Technologies
+    ├── Nuclei       → Findings / Vulnerabilities
+    └── Change Engine → Asset / Port / Tech / Finding diffs
+            ↓
+      Risk Engine
+            ↓
+      PostgreSQL
 ```
 
-This makes RYNEX more than a basic Nmap/Nuclei wrapper.
+## Tech Stack
 
----
+### Backend
+- Python
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- Pydantic
 
-# 🏗️ Architecture
+### Security Tools
+- Subfinder
+- Nmap
+- HTTPX
+- Nuclei
+
+### Frontend
+- React
+- Vite
+- JavaScript / JSX
+
+## Verified Project Status
+
+The following have been validated successfully in this workspace:
+
+- `pytest -q` → `4 passed`
+- `npm run build` in `dashboard/` → successful production build
+- `GET /health` → healthy API response
+- `GET /scans/` → valid scan history endpoint
+- End-to-end scan on `scanme.nmap.org` → completed successfully
+
+## Repository Structure
 
 ```text
-                    ┌─────────────────────┐
-                    │      Analyst        │
-                    │   / API Consumer    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │      FastAPI        │
-                    │       REST API      │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Scan Orchestrator │
-                    └──────────┬──────────┘
-                               │
-             ┌─────────────────┼─────────────────┐
-             ▼                 ▼                 ▼
-       ┌──────────┐      ┌──────────┐      ┌──────────┐
-       │ Subfinder│      │   Nmap   │      │  HTTPX   │
-       └────┬─────┘      └────┬─────┘      └────┬─────┘
-            │                 │                 │
-            ▼                 ▼                 ▼
-       Subdomains           Ports         HTTP / Tech
-            │                 │                 │
-            └─────────────────┼─────────────────┘
-                              ▼
-                         ┌─────────┐
-                         │ Nuclei  │
-                         └────┬────┘
-                              │
-                              ▼
-                         Findings
-                              │
-                              ▼
-                  ┌──────────────────────┐
-                  │   Change Detection   │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │     Risk Engine      │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                     ┌──────────────┐
-                     │  PostgreSQL  │
-                     └──────────────┘
+RYNEX/
+├── backend/
+│   ├── app/
+│   ├── api/
+│   ├── core/
+│   ├── models/
+│   ├── schemas/
+│   └── services/
+├── dashboard/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+├── risk/
+├── scanner/
+├── tests/
+├── .env
+├── requirements.txt
+├── README.md
+└── ...
 ```
 
----
-
-# 🧰 Technology Stack
-
-## Backend
-
-* Python
-* FastAPI
-* SQLAlchemy
-* PostgreSQL
-* Pydantic / environment configuration
-
-## Security Tooling
-
-* Subfinder
-* Nmap
-* ProjectDiscovery HTTPX
-* Nuclei
-
-## Frontend
-
-* React + Vite
-* Analyst-focused security dashboard
-* Verdict summary, search/filter controls, and scan history UI
-
-> The dashboard is implemented and is connected to the FastAPI backend.
-
----
-
-# 📊 Current Project Status
-
-| Component                   | Status     |
-| --------------------------- | ---------- |
-| Project foundation          | ✅ Complete |
-| FastAPI backend             | ✅ Complete |
-| PostgreSQL integration      | ✅ Complete |
-| Domain management           | ✅ Complete |
-| Asset discovery             | ✅ Complete |
-| DNS/IP resolution           | ✅ Complete |
-| Nmap integration            | ✅ Complete |
-| Port tracking               | ✅ Complete |
-| HTTPX integration           | ✅ Complete |
-| Technology tracking         | ✅ Complete |
-| Nuclei integration          | ✅ Complete |
-| Finding lifecycle           | ✅ Complete |
-| Risk engine                 | ✅ Complete |
-| Asset risk calculation      | ✅ Complete |
-| Asset change detection      | ✅ Complete |
-| Port change detection       | ✅ Complete |
-| Technology change detection | ✅ Complete |
-| Finding change detection    | ✅ Complete |
-| Full scan orchestration     | ✅ Complete |
-| End-to-end pipeline         | ✅ Complete |
-| Security dashboard          | ✅ Complete |
-| Domain allowlist guard      | ✅ Complete |
-| Async scan execution        | ✅ Complete |
-| Search/filter dashboard UI   | ✅ Complete |
-| Verification and hardening  | ✅ Complete |
-
----
-
-# � Operational Notes
-
-## Domain access model
-
-RYNEX is intended for a local, owner-controlled environment. Domain creation and scanning are restricted to domains listed in `ALLOWED_DOMAINS`.
-
-Example:
-
-```bash
-export ALLOWED_DOMAINS="example.com,example.org"
-```
-
-If a domain is not allowlisted, the API rejects creation and the UI will show the restriction.
-
-## Scan execution model
-
-Scans are triggered by the API and then continue in a background thread so the request returns quickly while the scan runs. The scan history endpoint can be polled to see the latest status.
-
-# �🔍 Core Capabilities
-
-## 1. Asset Discovery
-
-RYNEX uses Subfinder to discover subdomains associated with an authorized domain.
-
-Discovered hostnames are:
-
-* Normalized
-* Deduplicated
-* DNS resolved
-* Stored as assets
-* Associated with IP addresses
-* Tracked using `first_seen` and `last_seen`
-
-### Asset lifecycle
-
-```text
-New Asset
-   ↓
-ACTIVE
-   ↓
-Not discovered
-   ↓
-INACTIVE
-```
-
-Historical asset records are retained.
-
----
-
-# 🌐 2. Exposure Mapping
-
-Nmap is used to identify exposed network services.
-
-RYNEX extracts:
-
-* Port number
-* Protocol
-* State
-* Service
-* Product
-* Version
-
-Example:
-
-```text
-5432/tcp → PostgreSQL
-8000/tcp → HTTP / Uvicorn
-```
-
-Ports are retained historically rather than being deleted when they disappear.
-
----
-
-# 🕸️ 3. HTTP & Technology Mapping
-
-ProjectDiscovery HTTPX identifies HTTP/HTTPS exposure and technology information.
-
-Collected information includes:
-
-* HTTP URL
-* Status code
-* Page title
-* Web server
-* Technologies
-* Host/IP information
-
-Technology lifecycle is tracked using:
-
-```text
-ACTIVE
-INACTIVE
-```
-
-Historical technology records are retained.
-
----
-
-# 🔎 4. Vulnerability Detection
-
-Nuclei is integrated into the pipeline for vulnerability and exposure detection.
-
-RYNEX stores:
-
-* Template ID
-* Finding title
-* Severity
-* Evidence
-* Matched location
-* Asset
-* Scan
-* First seen
-* Last seen
-* Status
-
-Finding lifecycle:
-
-```text
-NEW
- ↓
-OPEN
- ↓
-RESOLVED
-```
-
-Repeated findings are deduplicated using the asset and Nuclei template relationship.
-
----
-
-# ⚠️ 5. Contextual Risk Engine
-
-RYNEX calculates an internal prioritization score using finding severity and exposure context.
-
-Factors currently considered include:
-
-* Finding severity
-* Internet-facing status
-* Web exposure
-* SSH exposure
-* Database exposure
-* Detected service version
-
-Risk levels:
-
-```text
-LOW
-MEDIUM
-HIGH
-CRITICAL
-```
-
-### Important
-
-The RYNEX score is an **internal prioritization score**.
-
-It is **not CVSS** and should not be interpreted as an official vulnerability severity standard.
-
----
-
-# 🔄 6. Change Detection
-
-One of RYNEX's primary features is comparing security state between scans.
-
-### Asset changes
-
-* New asset
-* Removed asset
-
-### Port changes
-
-* New open port
-* Closed port
-
-### Technology changes
-
-* New technology
-* Removed technology
-
-### Finding changes
-
-* New finding
-* Resolved finding
-
-Every detected change can retain:
-
-* Change type
-* Description
-* Previous value
-* Current value
-* Asset
-* Scan
-* Detection timestamp
-
-Example:
-
-```text
-Previous Scan
-22/tcp → OPEN
-
-Current Scan
-22/tcp → CLOSED
-
-RYNEX
-↓
-CLOSED_PORT
-```
-
----
-
-# 🧠 State Tracking
-
-RYNEX is designed around persistent security state.
-
-Instead of:
-
-```text
-Scan → Output → Throw output away
-```
-
-the platform follows:
-
-```text
-Scan
- ↓
-Store State
- ↓
-Next Scan
- ↓
-Compare State
- ↓
-Detect Change
- ↓
-Update State
- ↓
-Calculate Risk
-```
-
-This allows the system to evolve toward continuous attack-surface monitoring.
-
----
-
-# 🗄️ Database Model
-
-Current core entities:
-
-```text
-Domain
-  │
-  └── Asset
-        │
-        ├── IPAddress
-        ├── Port
-        ├── Technology
-        └── Finding
-
-Scan
-  │
-  ├── Finding
-  └── Change
-
-Asset
-  │
-  └── Change
-```
-
-Core tables:
-
-* `domains`
-* `assets`
-* `ip_addresses`
-* `ports`
-* `technologies`
-* `findings`
-* `scans`
-* `changes`
-
----
-
-# 🧪 Current End-to-End Pipeline
-
-The complete backend pipeline has been successfully tested locally:
-
-```text
-Domain
-  ↓
-Discovery
-  ↓
-Asset
-  ↓
-Nmap
-  ↓
-Ports
-  ↓
-HTTPX
-  ↓
-Technologies
-  ↓
-Nuclei
-  ↓
-Findings
-  ↓
-Change Detection
-  ↓
-Risk Calculation
-  ↓
-PostgreSQL
-  ↓
-FastAPI
-```
-
-Repeated scans with no environmental changes correctly produce:
-
-```text
-Asset changes:       0
-Port changes:        0
-Technology changes:  0
-Finding changes:     0
-Total changes:       0
-```
-
-The system has also successfully detected actual port-state changes during controlled testing.
-
----
-
-# 🧪 Local Test Environment
-
-Development and integration testing is performed locally.
-
-Example test asset:
-
-```text
-test.rynex.local
-```
-
-Example observed state:
-
-```text
-22/tcp    closed
-443/tcp   closed
-5432/tcp  open
-8000/tcp  open
-```
-
-Technologies:
-
-```text
-Python
-Uvicorn
-```
-
-Example finding:
-
-```text
-swagger-api
-Severity: info
-Status: open
-```
-
-Current local test data exists only to validate the platform's functionality.
-
----
-
-# 🚀 Installation
-
-## Requirements
-
-* Linux
-* Python 3.x
-* PostgreSQL
-* Nmap
-* Subfinder
-* HTTPX
-* Nuclei
-
-## Clone
+## Quick Start
+
+### Prerequisites
+
+- Linux or WSL environment
+- Python 3.x
+- PostgreSQL
+- Nmap
+- Subfinder
+- HTTPX
+- Nuclei
+
+### 1) Clone the repository
 
 ```bash
 git clone <repository-url>
 cd RYNEX
 ```
 
-## Create virtual environment
+### 2) Create and activate a virtual environment
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-## Install Python dependencies
+### 3) Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Configure environment
+### 4) Configure environment variables
 
-Create `.env`:
+Create a `.env` file with your PostgreSQL URL and allowed domains.
+
+Example:
 
 ```env
 DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@localhost:5432/rynex
+ALLOWED_DOMAINS=scanme.nmap.org
 ```
 
-## Start API
+### 5) Start the backend
 
 ```bash
-uvicorn backend.app.main:app --reload
+./.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 ```
 
-API:
+API endpoints will be available at:
 
-```text
-http://127.0.0.1:8000
+- http://127.0.0.1:8000
+- Swagger docs: http://127.0.0.1:8000/docs
+
+### 6) Start the dashboard
+
+```bash
+cd dashboard
+npm install
+npm run dev
 ```
 
-Health check:
+The dashboard will run on the Vite local development server, typically at:
 
-```text
-GET /health
+- http://127.0.0.1:5173
+
+## Basic Workflow
+
+### Add a domain
+
+```bash
+curl -X POST 'http://127.0.0.1:8000/domains/?name=scanme.nmap.org'
 ```
 
-Swagger:
+### Start a scan
 
-```text
-http://127.0.0.1:8000/docs
+```bash
+curl -X POST 'http://127.0.0.1:8000/scans/?domain_id=1'
 ```
 
----
+### View scan history
 
-# 🔐 Authorization & Safety
+```bash
+curl http://127.0.0.1:8000/scans/
+```
 
-RYNEX is intended to be used **only against systems for which the operator has explicit authorization**.
+## How the Platform Thinks
+
+RYNEX is designed around persistent attack-surface state.
+
+Instead of showing a one-time scanner dump, it stores discovered data and continuously compares future scans against previous results.
+
+That allows it to answer questions like:
+
+- What new assets appeared?
+- Which ports closed or reopened?
+- What technologies changed?
+- Which findings are new or resolved?
+- What should be investigated first?
+
+## Risk Model
+
+RYNEX currently uses an internal prioritization model rather than raw CVSS scoring.
+
+It combines indicators such as:
+
+- finding severity,
+- internet-facing exposure,
+- web exposure,
+- SSH exposure,
+- database exposure,
+- detected service versions.
+
+The goal is operational prioritization, not formal vulnerability scoring.
+
+## Security and Ethics
+
+RYNEX is intended for authorized environments only.
 
 Do not scan:
 
-* Third-party infrastructure
-* Company/client infrastructure without authorization
-* Random internet targets
-* Systems outside your permitted scope
+- third-party infrastructure,
+- client or employer systems without explicit authorization,
+- arbitrary internet targets outside your permitted scope.
 
-The project is designed as a defensive security research and portfolio platform.
+This project is meant for defensive security research, learning, and portfolio development.
 
-Scanning configuration should remain appropriately conservative for the authorized environment.
+## Current Limitations
 
----
+This project is a working local MVP with the following scope:
 
-# 🗺️ Roadmap
+- local owner-controlled usage,
+- dashboard connected to live API data,
+- async scan execution through the API,
+- domain allowlist enforcement,
+- internal risk prioritization rather than external CVSS scoring.
 
-## Day 1 — Foundation
+## Roadmap
 
-* [x] FastAPI
-* [x] PostgreSQL
-* [x] SQLAlchemy
-* [x] Domain/Asset/Scan models
+### Completed
+- FastAPI backend
+- PostgreSQL integration
+- Domain management
+- Asset discovery
+- DNS and IP tracking
+- Nmap port mapping
+- HTTPX detection
+- Nuclei findings ingestion
+- Change detection
+- Risk scoring
+- Dashboard integration
+- Local verification and hardening
 
-## Day 2 — Asset Discovery
+### Planned
+- Better search/filtering in the dashboard
+- Improved scanner failure handling
+- More polished logging and validation
+- Additional reporting and analytics views
+- Scheduled scanning support
+- Authentication and RBAC
 
-* [x] Subfinder
-* [x] DNS
-* [x] IP tracking
-* [x] Asset lifecycle
+## Project Status Summary
 
-## Day 3 — Exposure Mapping
+RYNEX is now in a strong working state as a locally hosted, analyst-oriented security platform for authorized attack-surface monitoring.
 
-* [x] Nmap
-* [x] Port tracking
-* [x] HTTPX
-* [x] Technology tracking
+It has been validated for:
 
-## Day 4 — Vulnerability Engine
+- backend startup,
+- API health and scan endpoints,
+- frontend build,
+- domain allowlist enforcement,
+- end-to-end scanning with a safe public test domain.
 
-* [x] Nuclei
-* [x] Finding ingestion
-* [x] Finding lifecycle
+## Contributing
 
-## Day 5 — Intelligence Layer
+Contributions are welcome. If you want to improve the project:
 
-* [x] Contextual risk scoring
-* [x] Asset risk
-* [x] Asset changes
-* [x] Port changes
-* [x] Technology changes
-* [x] Finding changes
-* [x] Historical state
-* [x] Full scan orchestration
+1. open an issue,
+2. create a feature branch,
+3. make a clean pull request,
+4. include verification details.
 
-## Day 6 — Security Dashboard
+## Disclaimer
 
-* [x] Dashboard overview
-* [x] Asset inventory
-* [x] Finding management
-* [x] Risk visualization
-* [x] Change timeline
-* [x] Domain/scan workflow
-* [ ] Search/filtering
-
-## Day 7 — Production-Quality Portfolio MVP
-
-* [ ] Automated tests
-* [ ] Scanner failure handling
-* [ ] Validation
-* [ ] Logging cleanup
-* [ ] Final database cleanup
-* [ ] Architecture diagram
-* [ ] Screenshots
-* [ ] Complete documentation
-* [ ] GitHub polish
-* [ ] Resume project entry
-
----
-
-# 📌 Current Limitations
-
-As of Day 5:
-
-* The dashboard is implemented and connected to live API data.
-* Scan execution is currently synchronous through the API.
-* The platform is designed for local MVP operation.
-* Scanner configuration remains intentionally conservative.
-* Final failure-state hardening is planned for Day 7.
-* The current risk engine is an internal prioritization model, not CVSS.
-* Authentication and multi-user functionality are outside the current 7-day MVP scope.
-
----
-
-# 🔮 Future Improvements
-
-Potential future versions could include:
-
-* Scheduled scanning
-* Background job processing
-* Authentication/RBAC
-* Notification integrations
-* Cloud deployment
-* Multi-tenant architecture
-* Advanced asset relationship graphs
-* Historical risk trend visualization
-* Additional security scanners
-
-These are intentionally **outside the current 7-day MVP**.
-
----
-
-# 📈 Development Progress
-
-```text
-Day 1  ████████████████████ 100%
-Day 2  ████████████████████ 100%
-Day 3  ████████████████████ 100%
-Day 4  ████████████████████ 100%
-Day 5  ████████████████████ 100%
-Day 6  ░░░░░░░░░░░░░░░░░░░░   0%
-Day 7  ░░░░░░░░░░░░░░░░░░░░   0%
-
-Overall: ~71%
-```
-
----
-
-# 📄 Project Status
-
-**RYNEX is currently at the end of Day 5 of its 7-day MVP development plan.**
-
-The core security intelligence backend is operational:
-
-```text
-Discovery
-   +
-Exposure Mapping
-   +
-Vulnerability Detection
-   +
-Risk Calculation
-   +
-Change Detection
-   +
-Historical State
-   =
-RYNEX Core Engine
-```
-
-The next milestone is the **analyst-facing security dashboard**.
-
----
-
-## ⚠️ Disclaimer
-
-RYNEX is an educational, defensive-security, and portfolio project.
-
-Only use it against infrastructure that you own or have explicit authorization to assess.
+RYNEX is an educational, defensive-security project. Use it only against systems you own or are explicitly authorized to test.
