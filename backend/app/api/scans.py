@@ -11,6 +11,28 @@ from scanner.scan_pipeline import run_full_scan
 router = APIRouter(prefix="/scans", tags=["Scans"])
 
 
+@router.get("/")
+def list_scans(db: Session = Depends(get_db)):
+    scans = (
+        db.query(Scan)
+        .join(Domain)
+        .order_by(Scan.started_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": scan.id,
+            "domain_id": scan.domain_id,
+            "domain": scan.domain.name,
+            "status": scan.status,
+            "started_at": scan.started_at,
+            "completed_at": scan.completed_at,
+        }
+        for scan in scans
+    ]
+
+
 @router.post("/")
 def start_scan(
     domain_id: int,

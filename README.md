@@ -2,12 +2,11 @@
 
 ### External Attack Surface Intelligence & Risk Monitoring Platform
 
-RYNEX is a locally hosted cybersecurity platform designed to discover, map, monitor, and prioritize internet-facing attack-surface exposure.
+RYNEX is a locally hosted cybersecurity platform for discovering, mapping, monitoring, and prioritizing internet-facing attack-surface exposure.
 
-Instead of treating vulnerability scanning as a one-time activity, RYNEX maintains an evolving view of assets, ports, technologies, findings, risk, and security changes across scans.
+It stores asset state across scans, compares changes over time, and surfaces a prioritized view of what matters most to the analyst.
 
-> **Current status:** Day 6/7 completed for the dashboard MVP, with live FastAPI + Vite integration, real DB-backed dashboard data, and a working scans flow.
-> **Final hardening and portfolio polish remain as the remaining Day 7 work.**
+> **Current status:** The project is working as a local, owner-controlled security dashboard. The frontend and backend are integrated, scans run asynchronously, and domain creation is restricted to an allowlist defined by `ALLOWED_DOMAINS`.
 
 ---
 
@@ -153,12 +152,13 @@ This makes RYNEX more than a basic Nmap/Nuclei wrapper.
 * ProjectDiscovery HTTPX
 * Nuclei
 
-## Planned Frontend
+## Frontend
 
-* React / Next.js
+* React + Vite
 * Analyst-focused security dashboard
+* Verdict summary, search/filter controls, and scan history UI
 
-> The dashboard is **not yet implemented** as of Day 5.
+> The dashboard is implemented and is connected to the FastAPI backend.
 
 ---
 
@@ -187,13 +187,32 @@ This makes RYNEX more than a basic Nmap/Nuclei wrapper.
 | Full scan orchestration     | ✅ Complete |
 | End-to-end pipeline         | ✅ Complete |
 | Security dashboard          | ✅ Complete |
-| Final testing/hardening     | 🚧 Day 7   |
-| Documentation polish        | 🚧 Day 7   |
-| GitHub portfolio polish     | 🚧 Day 7   |
+| Domain allowlist guard      | ✅ Complete |
+| Async scan execution        | ✅ Complete |
+| Search/filter dashboard UI   | ✅ Complete |
+| Verification and hardening  | ✅ Complete |
 
 ---
 
-# 🔍 Core Capabilities
+# � Operational Notes
+
+## Domain access model
+
+RYNEX is intended for a local, owner-controlled environment. Domain creation and scanning are restricted to domains listed in `ALLOWED_DOMAINS`.
+
+Example:
+
+```bash
+export ALLOWED_DOMAINS="example.com,example.org"
+```
+
+If a domain is not allowlisted, the API rejects creation and the UI will show the restriction.
+
+## Scan execution model
+
+Scans are triggered by the API and then continue in a background thread so the request returns quickly while the scan runs. The scan history endpoint can be polled to see the latest status.
+
+# �🔍 Core Capabilities
 
 ## 1. Asset Discovery
 
