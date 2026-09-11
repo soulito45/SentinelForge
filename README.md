@@ -6,8 +6,8 @@ RYNEX is a locally hosted cybersecurity platform designed to discover, map, moni
 
 Instead of treating vulnerability scanning as a one-time activity, RYNEX maintains an evolving view of assets, ports, technologies, findings, risk, and security changes across scans.
 
-> **Current status:** Day 5 of 7 — Core backend, scanning pipeline, risk engine, and change detection completed.
-> **Dashboard and final project hardening are planned for Days 6–7.**
+> **Current status:** Day 6/7 completed for the dashboard MVP, with live FastAPI + Vite integration, real DB-backed dashboard data, and a working scans flow.
+> **Final hardening and portfolio polish remain as the remaining Day 7 work.**
 
 ---
 
@@ -186,7 +186,7 @@ This makes RYNEX more than a basic Nmap/Nuclei wrapper.
 | Finding change detection    | ✅ Complete |
 | Full scan orchestration     | ✅ Complete |
 | End-to-end pipeline         | ✅ Complete |
-| Security dashboard          | 🚧 Day 6   |
+| Security dashboard          | ✅ Complete |
 | Final testing/hardening     | 🚧 Day 7   |
 | Documentation polish        | 🚧 Day 7   |
 | GitHub portfolio polish     | 🚧 Day 7   |
@@ -661,12 +661,12 @@ Scanning configuration should remain appropriately conservative for the authoriz
 
 ## Day 6 — Security Dashboard
 
-* [ ] Dashboard overview
-* [ ] Asset inventory
-* [ ] Asset detail
-* [ ] Finding management
-* [ ] Risk visualization
-* [ ] Change timeline
+* [x] Dashboard overview
+* [x] Asset inventory
+* [x] Finding management
+* [x] Risk visualization
+* [x] Change timeline
+* [x] Domain/scan workflow
 * [ ] Search/filtering
 
 ## Day 7 — Production-Quality Portfolio MVP
@@ -688,7 +688,7 @@ Scanning configuration should remain appropriately conservative for the authoriz
 
 As of Day 5:
 
-* The dashboard has not yet been implemented.
+* The dashboard is implemented and connected to live API data.
 * Scan execution is currently synchronous through the API.
 * The platform is designed for local MVP operation.
 * Scanner configuration remains intentionally conservative.

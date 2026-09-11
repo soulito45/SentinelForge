@@ -40,36 +40,3 @@ def discover_subdomains(domain: str) -> list[str]:
         )
 
     return parse_subfinder_output(result.stdout)
-
-
-def discover_subdomains(domain: str) -> list[str]:
-    """
-    Run Subfinder against an authorized domain
-    and return unique discovered subdomains.
-    """
-
-    result = subprocess.run(
-        [
-            "subfinder",
-            "-d",
-            domain,
-            "-silent",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=300,
-        check=False,
-    )
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"Subfinder failed: {result.stderr.strip()}"
-        )
-
-    subdomains = {
-        line.strip().lower()
-        for line in result.stdout.splitlines()
-        if line.strip()
-    }
-
-    return sorted(subdomains)

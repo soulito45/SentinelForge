@@ -6,12 +6,14 @@ from backend.app.models.port import Port
 from backend.app.models.technology import Technology
 from backend.app.models.finding import Finding
 from backend.app.models.change import Change
+
 __all__ = [
     "Domain",
     "Asset",
     "Scan",
     "IPAddress",
-    "port",
-    "technology",
-    "Findings",
+    "Port",
+    "Technology",
+    "Finding",
+    "Change",
 ]
